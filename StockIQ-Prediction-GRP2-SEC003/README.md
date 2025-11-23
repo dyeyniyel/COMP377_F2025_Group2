@@ -14,6 +14,9 @@ To install all current requirements
 
 To run program,
 ```python run.py```
-![image](https://github.com/user-attachments/assets/fce54827-a65a-49c9-8b7c-9c4adbfc5d10)
-![image](https://github.com/user-attachments/assets/574197bc-3f63-451b-8a60-7fb8ee06afee)
-![image](https://github.com/user-attachments/assets/14e85ed9-6502-4ed1-9b7f-c95f3f6b6a80)
+<img width="1896" height="1138" alt="image" src="https://github.com/user-attachments/assets/e237e646-ab44-40fa-856a-07888802f3c3" />
+
+<img width="2097" height="1230" alt="image" src="https://github.com/user-attachments/assets/903a6561-6d96-40a7-b017-bb63f655650b" />
+
+<img width="1040" height="688" alt="image" src="https://github.com/user-attachments/assets/fa88bf0c-554d-4be2-a5be-e294a7d5a239" />
+
