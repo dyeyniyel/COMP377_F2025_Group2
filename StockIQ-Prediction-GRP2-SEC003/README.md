@@ -1,6 +1,5 @@
 Training.py for ai model:
-
-https://colab.research.google.com/drive/10BGbwRJneeZGQWGpUf9UrCo28J5M7n3x?usp=sharing
+https://colab.research.google.com/drive/1JIM7TGZzDzcOXz-nUe65_fdobbQVwGS-
 
 To run this app,
 first create a virtual environment:
