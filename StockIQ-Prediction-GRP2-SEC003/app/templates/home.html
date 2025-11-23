@@ -1,0 +1,103 @@
+<!-- templates/home.html -->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Welcome to StockIQ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-[#020617] text-white">
+    {% include 'navbar.html' %}
+
+    <div
+      class="pt-24 px-6 bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 min-h-screen"
+    >
+      <!-- Hero Section -->
+      <div class="text-center max-w-3xl mx-auto py-16">
+        <h1 class="text-4xl md:text-5xl font-extrabold mb-4 tracking-tight">
+          📊 Welcome to
+          <span class="text-blue-400 drop-shadow-md">StockIQ</span>
+        </h1>
+        <p class="text-slate-300 text-lg md:text-xl mb-10 max-w-2xl mx-auto">
+          Predict smarter. Trade better.
+          <span class="text-blue-300">
+            StockIQ uses a pre‑trained regression model to forecast prices, so
+            you can practice buying and selling stocks with confidence in a
+            risk‑free environment.
+          </span>
+        </p>
+
+        <div class="flex flex-wrap justify-center gap-4">
+          {% if 'user_id' in session %}
+          <a
+            href="/dashboard"
+            class="bg-blue-600 hover:bg-blue-500 text-white px-7 py-3 rounded-xl font-semibold shadow-lg shadow-blue-900/50 transition transform hover:-translate-y-0.5"
+          >
+            Go to Dashboard
+          </a>
+          {% else %}
+          <a
+            href="/register"
+            class="bg-blue-600 hover:bg-blue-500 text-white px-7 py-3 rounded-xl font-semibold shadow-lg shadow-blue-900/50 transition transform hover:-translate-y-0.5"
+          >
+            Get Started
+          </a>
+          <a
+            href="/login"
+            class="bg-slate-800 hover:bg-slate-700 text-slate-50 px-7 py-3 rounded-xl font-semibold border border-slate-600/80 transition transform hover:-translate-y-0.5"
+          >
+            Login
+          </a>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Features Section -->
+      <div
+        class="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6 mt-4 md:mt-12 text-center"
+      >
+        <div
+          class="bg-gradient-to-b from-slate-900 to-slate-950 p-6 rounded-2xl shadow-xl border border-blue-900/60"
+        >
+          <h3 class="text-xl font-semibold mb-3 text-blue-300">
+            🤖 Price Predictions
+          </h3>
+          <p class="text-slate-300 text-sm md:text-base">
+            Leverage a pre‑trained regression model to estimate future stock
+            prices based on historical and real‑time market data.
+          </p>
+        </div>
+        <div
+          class="bg-gradient-to-b from-slate-900 to-slate-950 p-6 rounded-2xl shadow-xl border border-blue-900/60"
+        >
+          <h3 class="text-xl font-semibold mb-3 text-blue-300">
+            📈 Interactive Dashboards
+          </h3>
+          <p class="text-slate-300 text-sm md:text-base">
+            Explore real‑time charts, key indicators, and prediction overlays in
+            an intuitive, interactive dashboard designed for quick insights.
+          </p>
+        </div>
+        <div
+          class="bg-gradient-to-b from-slate-900 to-slate-950 p-6 rounded-2xl shadow-xl border border-blue-900/60"
+        >
+          <h3 class="text-xl font-semibold mb-3 text-blue-300">
+            💼 Virtual Stock Portfolio
+          </h3>
+          <p class="text-slate-300 text-sm md:text-base">
+            Log in to manage a virtual portfolio: buy and sell stocks, track
+            your performance, and experiment with strategies without real
+            financial risk.
+          </p>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <footer
+        class="mt-16 text-center text-slate-400 pb-8 border-t border-slate-800 pt-6"
+      >
+        &copy; {{ current_date }} StockIQ. Created by Group2 SEC001 for COMP377.
+      </footer>
+    </div>
+  </body>
+</html>

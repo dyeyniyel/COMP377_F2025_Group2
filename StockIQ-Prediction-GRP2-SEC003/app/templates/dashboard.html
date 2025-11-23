@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Stock Chart</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+
+  <body class="bg-[#020617] text-gray-200 font-sans min-h-screen">
+    {% include 'navbar.html' %}
+
+    <!-- Page Wrapper with top padding for fixed navbar -->
+    <div
+      class="pt-20 pb-10 bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 min-h-screen"
+    >
+      <!-- Flash messages (now below navbar, inside padded wrapper) -->
+      {% with messages = get_flashed_messages(with_categories=true) %} {% if
+      messages %}
+      <div class="max-w-7xl mx-auto px-4 mb-4 space-y-2">
+        {% for category, message in messages %}
+        <div
+          class="rounded-md border px-4 py-3 text-sm {% if category == 'error' %} bg-red-950 border-red-700 text-red-100 {% elif category == 'success' %} bg-emerald-950 border-emerald-700 text-emerald-100 {% else %} bg-slate-900 border-slate-700 text-slate-100 {% endif %}"
+        >
+          {{ message }}
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %} {% endwith %} >
+      <!-- Balance Section -->
+      <div class="max-w-7xl mx-auto px-4">
+        <div
+          class="bg-gradient-to-r from-slate-900 to-slate-800 rounded-2xl p-6 shadow-lg border border-blue-900/60 flex flex-col md:flex-row md:items-center justify-between gap-6"
+        >
+          <div id="balance" class="flex items-center gap-4">
+            <div>
+              <h2
+                class="text-sm font-semibold tracking-wide text-slate-400 uppercase mb-1"
+              >
+                Virtual Balance
+              </h2>
+              <h2 class="text-2xl md:text-3xl font-bold text-white">
+                Available Balance: ${{ balance }}
+              </h2>
+            </div>
+            <div class="hidden md:flex items-center justify-center">
+              <div
+                class="h-14 w-14 rounded-full bg-blue-500/20 border border-blue-500/60 flex items-center justify-center"
+              >
+                <span class="text-2xl">💰</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Add Funds Form -->
+          <form
+            action="/add_funds"
+            method="POST"
+            class="w-full md:w-auto flex flex-col sm:flex-row items-stretch sm:items-end gap-3"
+          >
+            <div class="flex-1">
+              <label
+                for="add_amount"
+                class="block text-xs font-medium text-slate-400 mb-1"
+                >Add Funds</label
+              >
+              <input
+                type="number"
+                step="0.01"
+                min="0.01"
+                name="amount"
+                id="add_amount"
+                required
+                class="w-full p-2.5 rounded-md bg-slate-900 border border-slate-700 text-white text-sm"
+                placeholder="Enter amount"
+              />
+            </div>
+            <button
+              type="submit"
+              class="sm:w-auto w-full bg-emerald-500 hover:bg-emerald-400 text-white font-semibold py-2.5 px-4 rounded-lg transition shadow-md shadow-emerald-900/50 text-sm"
+            >
+              Add Funds
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Main Content Grid -->
+      <div
+        class="max-w-7xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-5 gap-8"
+      >
+        <!-- Chart Section -->
+        <section
+          class="bg-[#050f29] rounded-2xl p-6 shadow-xl lg:col-span-3 border border-slate-800"
+        >
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h1 class="text-xl md:text-2xl font-bold text-white">
+                📉 Stock Price Charts
+              </h1>
+              <!-- make this single line; no inner whitespace -->
+              <p
+                id="current_date"
+                class="text-xs md:text-sm text-slate-400 mt-1"
+              >
+                {{ current_date }}
+              </p>
+              <!-- Hidden clean value for JS/back-end to read if needed -->
+              <input
+                type="hidden"
+                id="current_date_input"
+                value="{{ current_date }}"
+              />
+            </div>
+          </div>
+
+          <label
+            for="stockSelect"
+            class="block text-sm font-medium mb-2 text-gray-300"
+          >
+            Choose a stock
+          </label>
+          <select
+            id="stockSelect"
+            class="w-full p-2.5 rounded-md bg-[#0b1734] text-white border border-blue-900 focus:ring-2 focus:ring-blue-500 mb-4"
+          >
+            <option value="">-- Select a stock --</option>
+            {% for symbol, name in stock_names.items() %}
+            <option value="{{ symbol }} - {{ name }}">
+              {{ symbol }} - {{ name }}
+            </option>
+            {% endfor %}
+          </select>
+
+          <div
+            class="chart-container relative w-full bg-[#050f29] mt-4 p-4 rounded-xl border border-slate-800 shadow-inner"
+          >
+            <div
+              id="loadingSpinner"
+              class="hidden fixed inset-0 flex justify-center items-center z-50"
+            >
+              <div
+                class="animate-spin rounded-full h-12 w-12 border-t-4 border-blue-400 border-solid"
+              ></div>
+            </div>
+            <div id="stockChartVisible">
+              <canvas id="stockChart" class="w-full h-64"></canvas>
+            </div>
+          </div>
+
+          <div class="flex justify-center space-x-4 mt-6">
+            <button
+              id="prev-day"
+              class="bg-blue-600 hover:bg-blue-500 text-white font-semibold px-4 py-2 rounded-md transition shadow-sm shadow-blue-900/40"
+            >
+              Previous
+            </button>
+            <button
+              id="next-day"
+              disabled
+              class="bg-blue-600/40 text-white font-semibold px-4 py-2 rounded-md transition border border-blue-500/40 hover:bg-blue-600 disabled:opacity-60"
+            >
+              Next
+            </button>
+          </div>
+        </section>
+
+        <!-- Right Column: Trade + Holdings -->
+        <section class="space-y-6 lg:col-span-2">
+          <!-- Trade Card -->
+          <div
+            class="bg-[#050f29] p-6 rounded-2xl shadow-xl border border-slate-800"
+          >
+            <h2
+              class="text-xl font-bold text-white mb-5 flex items-center justify-between border-b border-slate-800 pb-3"
+            >
+              <span>💰 Trade Stock</span>
+            </h2>
+            <form
+              id="buyForm"
+              action="/buy_stock"
+              method="POST"
+              class="space-y-4"
+            >
+              <input type="hidden" id="buy_stock_symbol" name="stock_symbol" />
+              <input type="hidden" id="buy_stock_name" name="stock_name" />
+              <input
+                type="hidden"
+                id="buy_current_price"
+                name="current_price"
+              />
+
+              <div>
+                <label class="block text-xs text-gray-400 mb-1"
+                  >Selected Stock</label
+                >
+                <input
+                  id="selected_stock_display"
+                  readonly
+                  class="w-full p-2.5 rounded-md bg-slate-900 border border-slate-700 text-white text-sm"
+                />
+              </div>
+
+              <div>
+                <label class="block text-xs text-gray-400 mb-1">Quantity</label>
+                <input
+                  type="number"
+                  name="quantity"
+                  min="1"
+                  value="1"
+                  required
+                  class="w-full p-2.5 rounded-md bg-slate-900 border border-slate-700 text-white text-sm"
+                />
+              </div>
+
+              <button
+                type="submit"
+                class="w-full bg-emerald-500 hover:bg-emerald-400 text-white font-semibold py-2.5 rounded-lg transition shadow-md shadow-emerald-900/50"
+              >
+                Buy Stock
+              </button>
+            </form>
+          </div>
+
+          <!-- Holdings Table -->
+          <div
+            class="bg-[#050f29] p-6 rounded-2xl shadow-xl border border-slate-800"
+          >
+            <h2
+              class="text-xl font-bold text-white mb-5 border-b border-slate-800 pb-3"
+            >
+              📊 My Holdings
+            </h2>
+            <div class="overflow-x-auto text-sm">
+              <table class="w-full text-left border-collapse">
+                <thead class="bg-[#0b1734]">
+                  <tr>
+                    <th
+                      class="px-3 py-2 border-b border-slate-700 text-slate-200"
+                    >
+                      Stock
+                    </th>
+                    <th
+                      class="px-3 py-2 border-b border-slate-700 text-slate-200"
+                    >
+                      Qty
+                    </th>
+                    <th
+                      class="px-3 py-2 border-b border-slate-700 text-slate-200"
+                    >
+                      Buy $
+                    </th>
+                    <th
+                      class="px-3 py-2 border-b border-slate-700 text-slate-200"
+                    >
+                      Date
+                    </th>
+                    <th
+                      class="px-3 py-2 border-b border-slate-700 text-slate-200"
+                    >
+                      Sell
+                    </th>
+                  </tr>
+                </thead>
+                <tbody id="holdingsBody" class="bg-[#020b23]">
+                  <!-- Populated by JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </body>
+
+  <!-- Helper script: normalize current_date text node once DOM is ready -->
+  <script>
+    // Ensure the date text is fully trimmed for any JS that reads from DOM.
+    (function () {
+      const el = document.getElementById("current_date");
+      if (el) {
+        const clean = (el.textContent || el.innerText || "").trim();
+        el.textContent = clean; // overwrite content with trimmed value
+        // also expose on a global for other scripts (like chart_utils.js) if needed
+        window.CLEAN_CURRENT_DATE = clean;
+      }
+    })();
+  </script>
+
+  <script>
+    const defaultStockSymbol = "TSLA - Tesla, Inc. - #E31937";
+    const stockSelect1 = document.getElementById("stockSelect");
+    stockSelect1.value = defaultStockSymbol;
+  </script>
+  <script src="{{ url_for('static', filename='js/chart_utils.js') }}"></script>
+  <script>
+    const buyForm = document.getElementById("buyForm");
+    // Dynamically fetch holdings
+    async function loadHoldings() {
+      const userId = "{{ session['user_id'] if 'user_id' in session else '' }}";
+
+      const response = await fetch(`/user_holdings/${userId}`);
+      const data = await response.json();
+
+      const tableBody = document.getElementById("holdingsBody");
+      tableBody.innerHTML = "";
+
+      data.forEach((holding) => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+                <td class="border-t border-slate-800 px-3 py-2">${
+                  holding.stock_symbol
+                }</td>
+                <td class="border-t border-slate-800 px-3 py-2">${
+                  holding.quantity
+                }</td>
+                <td class="border-t border-slate-800 px-3 py-2">$${(
+                  holding.purchase_price * holding.quantity
+                ).toFixed(2)}</td>
+                <td class="border-t border-slate-800 px-3 py-2">${
+                  holding.purchase_date
+                }</td>
+                <td class="border-t border-slate-800 px-3 py-2">
+                <form action="/sell_stock" method="POST" class="flex gap-1 items-center">
+                    <input type="hidden" name="holding_id" value="${
+                      holding._id
+                    }">
+                    <input type="hidden" name="current_price" value="${
+                      holding.purchase_price
+                    }">
+                    <input type="number" name="quantity" value="1" min="1" max="${
+                      holding.quantity
+                    }" class="w-16 bg-slate-900 border border-slate-700 p-1 text-white text-xs rounded">
+                    <button type="submit" class="bg-red-600 hover:bg-red-500 text-white text-xs px-2 py-1 rounded">Sell</button>
+                </form>
+                </td>
+            `;
+        tableBody.appendChild(row);
+      });
+    }
+
+    // Refresh holdings when Buy form is submitted
+    buyForm.addEventListener("submit", (e) => {
+      setTimeout(() => loadHoldings(), 1000); // Wait for server to update
+    });
+
+    // On page load
+    window.addEventListener("load", () => {
+      const userId = "{{ session['user_id'] if 'user_id' in session else '' }}";
+      if (userId) {
+        loadHoldings();
+      }
+      stockSelect.dispatchEvent(new Event("change"));
+    });
+  </script>
+
+  <script>
+    async function fetchBalance() {
+      try {
+        const response = await fetch("/balance");
+        const data = await response.json();
+        if (data.balance !== undefined) {
+          const balanceContainer = document.getElementById("balance");
+          if (balanceContainer) {
+            const balanceText =
+              balanceContainer.querySelector("h2:nth-child(2)");
+            if (balanceText) {
+              balanceText.textContent =
+                "Available Balance: $" + data.balance.toFixed(2);
+            }
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching balance:", error);
+      }
+    }
+
+    // Call this function when the page loads
+    window.onload = fetchBalance;
+  </script>
+</html>
