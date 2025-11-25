@@ -2,6 +2,9 @@ Training.py for ai model:
 https://colab.research.google.com/drive/1JIM7TGZzDzcOXz-nUe65_fdobbQVwGS-
 
 To run this app,
+On Backend, run mongod (MongoDB)
+
+On FE:
 first create a virtual environment:
 ```python -m venv venv ```
 
